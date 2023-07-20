@@ -6,20 +6,34 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MagicVillaAPI.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("api/[controller]")]  // it is always better to use in specific name instead of the [controller] syntax
 	[ApiController]
 	public class VillaAPIController : ControllerBase
 	{
 		[HttpGet("getVilla")]
-		public IEnumerable<VillaDto> GetVillas()
+		public ActionResult<IEnumerable<VillaDto>> GetVillas()
 		{
-			return VillaStore.villaDtos;
+			return Ok(VillaStore.villaDtos);
 		}
 
 		[HttpGet("{id:int}")]
-		public VillaDto GetVilla(int id)
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400)]
+		[ProducesResponseType(404)]
+		//[ProducesResponseType(200, Type = typeof(VillaDto))] 
+		// if you use the IActionResult instead of the ActionResult<>
+		public ActionResult<VillaDto> GetVilla(int id)
 		{
-			return VillaStore.villaDtos.FirstOrDefault(row => row.Id == id);
+			if(id == 0)
+			{
+				return BadRequest();
+			}
+			var villa  = VillaStore.villaDtos.FirstOrDefault(x => x.Id == id);
+			if (villa == null)
+			{
+				return NotFound();
+			}
+			return Ok(villa);
 		}
 	}
 }
