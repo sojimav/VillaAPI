@@ -2,6 +2,7 @@
 using MagicVillaAPI.DTOs;
 using MagicVillaAPI.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MagicVillaAPI.Controllers
@@ -87,6 +88,51 @@ namespace MagicVillaAPI.Controllers
 			VillaStore.villaDtos.Remove(villa);
 			return NoContent();
 			
+		}
+
+
+
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[HttpPut("{id:int}", Name ="UpdateVilla")]
+		public IActionResult UpdateVilla(int id, [FromBody]VillaDto dto)
+		{		
+			if(dto == null || id != dto.Id)
+			{
+				return BadRequest();
+			}	
+			var vto = VillaStore.villaDtos.FirstOrDefault(row => row.Id == id);
+			vto.Name = dto.Name;
+			vto.Sqft = dto.Sqft;
+			vto.Occupancy = dto.Occupancy;
+			return NoContent();
+		}
+
+
+		[HttpPatch("{id:int}", Name = "PatchVilla")]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		public IActionResult PatchVilla(int id, JsonPatchDocument<VillaDto> patchDTO)
+		{
+			if ( patchDTO == null || id == 0)
+			{
+				return BadRequest();
+			}
+			var vto = VillaStore.villaDtos.FirstOrDefault(row => row.Id == id);
+
+			if(vto ==  null)
+			{
+				return BadRequest();
+			}
+
+			patchDTO.ApplyTo(vto, ModelState);
+			if(!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			return NoContent();
 		}
 	}
 }
